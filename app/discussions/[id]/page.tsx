@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { 
   Loader2, MessageSquare, Send, Mic, Paperclip, X, 
   Image as ImageIcon, Square, User, Trash2, Edit2, 
-  Reply, HelpCircle, Check, Users, Download, FileArchive, ChevronRight 
+  Reply, HelpCircle, Check, Users, Download, FileArchive, ChevronRight, ChevronDown 
 } from "lucide-react";
 import axios from "axios";
 import { toast } from "react-hot-toast";
@@ -62,6 +62,14 @@ export default function DiscussionRoom() {
   
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   
+  // --- متغيرات التمرير وقراءة الرسائل ---
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isFirstLoadRef = useRef(true);
+  const prevMessagesLengthRef = useRef(0);
+  // --------------------------------------
+
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -94,9 +102,50 @@ export default function DiscussionRoom() {
     }
   }, [courseId]);
 
+  // --- دالة مراقبة التمرير (Scroll) ---
+  const handleScroll = () => {
+    if (!scrollContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    
+    const atBottom = scrollHeight - scrollTop <= clientHeight + 100;
+    setIsAtBottom(atBottom);
+
+    if (atBottom && messages.length > 0) {
+      setUnreadCount(0);
+      localStorage.setItem(`chat_read_count_${courseId}`, messages.length.toString());
+    }
+  };
+
+  // --- منطق النزول التلقائي وعداد الرسائل الجديدة ---
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (messages.length === 0) return;
+
+    const storedCount = parseInt(localStorage.getItem(`chat_read_count_${courseId}`) || "0");
+
+    if (isFirstLoadRef.current) {
+      const diff = messages.length - storedCount;
+      if (diff > 0) {
+        setUnreadCount(diff);
+      } else {
+        messagesEndRef.current?.scrollIntoView();
+      }
+      isFirstLoadRef.current = false;
+    } 
+    else {
+      const addedMsgs = messages.length - prevMessagesLengthRef.current;
+      if (addedMsgs > 0) {
+        if (isAtBottom) {
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+          localStorage.setItem(`chat_read_count_${courseId}`, messages.length.toString());
+        } else {
+          setUnreadCount((prev) => prev + addedMsgs);
+        }
+      }
+    }
+    
+    prevMessagesLengthRef.current = messages.length;
+  }, [messages, courseId, isAtBottom]);
+  // ----------------------------------------------------
 
   const startRecording = async () => {
     try {
@@ -195,7 +244,15 @@ export default function DiscussionRoom() {
 
       setNewMessage(""); setAudioBlob(null); setAttachment(null); setRecordingTime(0);
       setReplyTo(null); setIsImportantQuestion(false); 
-      fetchData();
+      
+      await fetchData();
+
+      // إجبار النزول للأسفل عند إرسال رسالة جديدة
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+        setIsAtBottom(true);
+      }, 100);
+
     } catch (e) {
       toast.error("فشل إرسال الرسالة");
     } finally {
@@ -267,7 +324,7 @@ export default function DiscussionRoom() {
   let lastDateHeader = "";
 
   return (
-    <div className="flex flex-col h-[100dvh] w-full bg-[#0b1120] font-sans" dir="rtl">
+    <div className="flex flex-col h-[100dvh] w-full bg-[#0b1120] font-sans relative" dir="rtl">
       
       <div className="p-4 md:px-8 bg-[#0f172a]/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between z-10 shadow-sm shrink-0">
         <div className="flex items-center gap-4">
@@ -295,7 +352,11 @@ export default function DiscussionRoom() {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 custom-scrollbar">
+      <div 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 custom-scrollbar"
+      >
         <div className="max-w-5xl mx-auto w-full space-y-6">
           {loading ? (
             <div className="flex justify-center py-20"><Loader2 className="animate-spin text-emerald-500 w-10 h-10" /></div>
@@ -421,6 +482,25 @@ export default function DiscussionRoom() {
           <div ref={messagesEndRef} />
         </div>
       </div>
+
+      {/* الزر العائم للمسجات الجديدة */}
+      {unreadCount > 0 && (
+        <div className="absolute bottom-[130px] left-8 z-50">
+          <button
+            onClick={() => {
+              messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+              setUnreadCount(0);
+            }}
+            className="bg-emerald-500 text-white px-4 py-2 rounded-full shadow-[0_5px_20px_rgba(16,185,129,0.4)] flex items-center gap-2 hover:bg-emerald-400 transition-all hover:scale-105 animate-bounce"
+          >
+            <span className="bg-white text-emerald-600 w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold">
+              {unreadCount}
+            </span>
+            <span className="text-sm font-bold">رسائل جديدة</span>
+            <ChevronDown size={18} />
+          </button>
+        </div>
+      )}
 
       <div className="p-4 md:p-6 bg-[#0f172a] border-t border-white/5 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] z-10 relative">
         <div className="max-w-5xl mx-auto w-full flex flex-col gap-3">

@@ -225,8 +225,10 @@ export default function LeaderboardPage() {
                         )}
                       </div>
 
-                      <h3 className="font-black text-lg md:text-xl mb-1 line-clamp-1 w-full px-2">{user.firstName} {user.lastName}</h3>
-                      <p className="text-[11px] md:text-xs font-bold text-gray-400 mb-4 truncate w-full px-2">{user.specialization || "طالب متميز"}</p>
+                      {/* Name styling changed to wrap correctly and avoid being cut off */}
+                      <h3 className="font-black text-base sm:text-lg md:text-xl mb-4 break-words leading-tight w-full px-2">
+                        {user.firstName} {user.lastName}
+                      </h3>
                       
                       <div className="mt-auto flex flex-col items-center w-full">
                         <div className="flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl bg-black/30 border border-white/5 mb-2 w-full">
@@ -272,9 +274,10 @@ export default function LeaderboardPage() {
                               <UserIcon className="w-full h-full p-2 md:p-3 text-gray-500 relative z-10" />
                             )}
                           </div>
-                          <div className="truncate">
-                            <h4 className="font-bold text-sm md:text-lg text-gray-200 group-hover:text-white transition-colors truncate">{user.firstName} {user.lastName}</h4>
-                            <p className="text-[10px] md:text-xs text-purple-400/80 font-medium truncate">{user.specialization || "طالب متميز"}</p>
+                          <div className="truncate flex items-center h-full">
+                            <h4 className="font-bold text-base md:text-lg text-gray-200 group-hover:text-white transition-colors truncate w-full">
+                              {user.firstName} {user.lastName}
+                            </h4>
                           </div>
                         </div>
                         
