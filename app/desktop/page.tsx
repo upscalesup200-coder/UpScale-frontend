@@ -479,36 +479,63 @@ const handlePlayVideo = async (video: any) => {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {videos.map((vid: any, idx: number) => (
           <div 
             key={idx} 
             onClick={() => handlePlayVideo(vid)} 
-            className={`border p-5 rounded-3xl cursor-pointer transition-all hover:-translate-y-1 group flex flex-col justify-between shadow-lg ${
+            className={`relative overflow-hidden p-6 rounded-[2rem] cursor-pointer transition-all duration-500 group flex flex-col justify-between min-h-[180px] border ${
               vid.isCompleted 
-                ? 'bg-emerald-900/10 border-emerald-500/30 hover:shadow-[0_0_20px_rgba(16,185,129,0.15)] hover:border-emerald-500/60' 
-                : 'bg-[#1e293b] border-white/5 hover:border-purple-500/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)]'
+                ? 'bg-emerald-950/20 border-emerald-500/20 hover:border-emerald-500/50 hover:shadow-[0_10px_40px_-10px_rgba(16,185,129,0.3)]' 
+                : 'bg-[#1e293b] border-white/5 hover:border-purple-500/40 hover:shadow-[0_10px_40px_-10px_rgba(168,85,247,0.3)]'
             }`}
           >
-             <div className="flex justify-between items-start mb-4">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform ${vid.isCompleted ? 'bg-emerald-500/10 text-emerald-400' : 'bg-purple-500/10 text-purple-400'}`}>
-                  {vid.isCompleted ? <CheckCircle size={28} /> : <PlayCircle size={28} />}
+             {/* رقم الجلسة كخلفية مائية (Watermark) تعطي طابع احترافي */}
+             <div className={`absolute -left-4 -bottom-4 text-9xl font-black italic opacity-[0.03] pointer-events-none transition-transform duration-500 group-hover:scale-110 group-hover:-translate-y-2 ${vid.isCompleted ? 'text-emerald-500' : 'text-purple-500'}`}>
+                {(idx + 1).toString().padStart(2, '0')}
+             </div>
+
+             {/* إضاءة خفيفة في الزاوية */}
+             <div className={`absolute -top-10 -right-10 w-32 h-32 blur-[50px] rounded-full pointer-events-none transition-opacity duration-500 ${vid.isCompleted ? 'bg-emerald-500/20 group-hover:bg-emerald-500/30' : 'bg-purple-500/10 group-hover:bg-purple-500/20'}`}></div>
+
+             {/* القسم العلوي: الأيقونة وحالة الاكتمال */}
+             <div className="flex justify-between items-start mb-6 relative z-10">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center backdrop-blur-md border transition-all duration-500 group-hover:scale-110 shadow-lg ${
+                  vid.isCompleted 
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 group-hover:shadow-emerald-500/20' 
+                  : 'bg-purple-500/10 border-purple-500/30 text-purple-400 group-hover:shadow-purple-500/20'
+                }`}>
+                  {vid.isCompleted 
+                    ? <CheckCircle size={28} className="drop-shadow-md" /> 
+                    : <PlayCircle size={28} className="drop-shadow-md fill-purple-500/20 group-hover:fill-purple-500/40 transition-colors" />
+                  }
                 </div>
                 
                 {vid.isCompleted && (
-                  <span className="text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-1 rounded-lg flex items-center gap-1">
-                    <CheckCircle2 size={12} /> مكتمل
+                  <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl flex items-center gap-1.5 backdrop-blur-md shadow-sm">
+                    <CheckCircle2 size={14} /> اكتملت
                   </span>
                 )}
              </div>
              
-             <div>
-               <span className="text-[10px] text-gray-500 font-bold mb-1 block">مقطع فيديو</span>
-               <h4 className="text-white font-bold text-sm line-clamp-2 leading-relaxed">{vid.title}</h4>
+             {/* القسم السفلي: رقم الجلسة واسمها */}
+             <div className="relative z-10 mt-auto">
+               <div className="flex items-center gap-2 mb-3">
+                  <span className={`text-[10px] font-black uppercase tracking-wider px-3 py-1.5 rounded-lg border shadow-sm ${
+                    vid.isCompleted ? 'text-emerald-300 bg-emerald-500/10 border-emerald-500/20' : 'text-purple-300 bg-purple-500/10 border-purple-500/20'
+                  }`}>
+                    الجلسة {idx + 1}
+                  </span>
+               </div>
+               <h4 className={`font-bold text-base line-clamp-2 leading-relaxed transition-colors duration-300 ${
+                 vid.isCompleted ? 'text-emerald-50 group-hover:text-emerald-200' : 'text-slate-100 group-hover:text-purple-200'
+               }`}>
+                 {vid.title}
+               </h4>
              </div>
           </div>
         ))}
-        {videos.length === 0 && <div className="col-span-full text-center py-16 text-gray-500 bg-[#1e293b]/50 rounded-3xl border border-dashed border-white/10 font-bold">لا يوجد فيديوهات في هذه المادة حالياً</div>}
+        {videos.length === 0 && <div className="col-span-full text-center py-16 text-gray-500 bg-[#1e293b]/50 rounded-[3rem] border border-dashed border-white/10 font-bold">لا يوجد فيديوهات في هذه المادة حالياً</div>}
       </div>
     </div>
   );
