@@ -15,7 +15,7 @@ import {
   Trophy, Rocket, Award,
   Search, ChevronDown, Github, Linkedin,
   Briefcase, Loader2, ArrowDownCircle, X, Megaphone, Calendar, ArrowUp,
-  ChevronRight, ChevronLeft // 🌟 تمت إضافة الأيقونات الخاصة بالأسهم
+  ChevronRight, ChevronLeft, DownloadCloud, Laptop, Smartphone
 } from "lucide-react";
 import Background from "@/components/Background";
 import { API_ROUTES, API_BASE_URL } from "@/config/api";
@@ -30,7 +30,6 @@ const FALLBACK_IMAGE = "https://placehold.co/800x500/0f172a/white.png?text=UpSca
 const AnimatedBeamSeparator = ({ colorFrom = "from-blue-500", colorTo = "to-indigo-500" }: { colorFrom?: string, colorTo?: string }) => (
   <div className="relative w-full h-[1px] bg-white/[0.03] overflow-hidden z-20 flex items-center justify-center">
     <div className={`absolute w-1/3 h-[1px] bg-gradient-to-r transparent via-white/10 to-transparent`} />
-    {/* تم إخفاء الحركة اللانهائية على الموبايل لتخفيف الضغط */}
     <motion.div 
       className={`hidden md:block absolute top-0 bottom-0 w-64 md:w-96 bg-gradient-to-r from-transparent ${colorFrom.replace('from-', 'via-')} to-transparent opacity-60`}
       animate={{ x: ["-300%", "300%"] }}
@@ -75,7 +74,7 @@ const BadgeSeparator = ({ icon: Icon, text, color = "text-blue-400", glow = "sha
 // 🧩 مكونات البطاقات والتقييم
 // ==========================================
 
-const ReadOnlyRating = ({ averageRating = 0, reviewsCount = 0 }: { averageRating?: number, reviewsCount?: number }) => {
+const ReadOnlyRating = ({ averageRating = 0 }: { averageRating?: number }) => {
   const displayValue = Math.round(averageRating);
   return (
     <div className="flex items-center gap-2 mt-1 mb-2">
@@ -88,14 +87,12 @@ const ReadOnlyRating = ({ averageRating = 0, reviewsCount = 0 }: { averageRating
       </div>
       <div className="flex items-center gap-1.5 border-r border-white/10 pr-2 mr-1">
         <span className="text-[11px] font-black text-white">{averageRating > 0 ? averageRating.toFixed(1) : "0.0"}</span>
-        <span className="text-[10px] text-gray-400">({reviewsCount})</span>
       </div>
     </div>
   );
 };
 
 const SectionCard = ({ title, desc, icon: Icon, color, borderColor }: { title: string, desc: string, icon: any, color: string, borderColor: string }) => (
-  // تم تخفيف البلور والظلال على الموبايل
   <motion.div whileHover={{ y: -5 }} className={`p-8 rounded-[2rem] bg-[#0f172a] md:bg-white/[0.02] border ${borderColor} hover:bg-[#1e293b] md:hover:bg-white/[0.04] transition-all duration-500 group cursor-pointer md:backdrop-blur-md shadow-lg md:shadow-xl hover:shadow-2xl relative overflow-hidden`}>
     <div className="hidden md:block absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
     <div className={`w-14 h-14 rounded-2xl ${color} flex items-center justify-center mb-6 md:group-hover:scale-110 transition-transform duration-500 shadow-inner relative z-10`}>
@@ -162,7 +159,7 @@ const FreeContentCard = ({ item }: { item: any }) => (
         
         <div className="p-6 flex flex-col flex-grow relative z-10">
             <h3 className="text-lg font-black text-white mb-1.5 leading-snug md:group-hover:text-amber-400 transition-colors line-clamp-2 drop-shadow-sm">{item.title}</h3>
-            <ReadOnlyRating averageRating={item.averageRating || 0} reviewsCount={item.reviewsCount || 0} />
+            <ReadOnlyRating averageRating={item.averageRating || 0} />
             <div className="flex items-center justify-between mt-auto pt-5 border-t border-white/5">
                 <div className="flex items-center gap-3">
                     <div className="w-9 h-9 rounded-full bg-[#1e293b] flex items-center justify-center border border-white/10 shadow-inner overflow-hidden">
@@ -235,7 +232,6 @@ export default function Home() {
   const scroll = (direction: 'right' | 'left') => {
     if (scrollRef.current) {
       const scrollAmount = 350; 
-      // حسب الاتجاه، نضيف التمرير
       if (direction === 'right') {
         scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
       } else {
@@ -266,6 +262,9 @@ export default function Home() {
   const [instructorsList, setInstructorsList] = useState<any[]>([]); 
   
   const [platformStats, setPlatformStats] = useState({ users: 0, courses: 0, workshops: 0, bootcamps: 0 });
+  
+  // 🌟 متغيرات الإحصائيات الوهمية
+  const [fakeStats, setFakeStats] = useState({ totalAccounts: 0, activeStudents: 0 });
 
   const [myEnrollments, setMyEnrollments] = useState<any[]>([]);
   const [userProgress, setUserProgress] = useState<string[]>([]);
@@ -278,6 +277,47 @@ export default function Home() {
   const [isLoadingFeatured, setIsLoadingFeatured] = useState(true);
   
   const [showBackToTop, setShowBackToTop] = useState(false);
+
+  // ✨ إضافة خوارزمية الحسابات الوهمية ✨
+  useEffect(() => {
+    const calculateGrowthStats = () => {
+      // 🌟 أرقام البداية المطلوبة
+      const baseAccounts = 3671;
+      const baseStudents = 521;
+      
+      // 🌟 تاريخ البداية: 16 مايو 2026 (شهر 5 رقمه 4 برمجياً)
+      const startDate = new Date(2026, 4, 16); 
+      const today = new Date();
+      
+      // التأكد من عدم وجود قيم سالبة
+      const diffTime = Math.max(0, today.getTime() - startDate.getTime());
+      const daysPassed = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+      let extraAccounts = 0;
+      let extraStudents = 0;
+
+      // نبدأ العد من 1 لكي يكون الرقم "اليوم" هو الأساسي بدون زيادات
+      for (let i = 1; i <= daysPassed; i++) {
+        let dayPattern = (i % 7) + 1;
+        switch (dayPattern) {
+          case 1: extraAccounts += 2; break;
+          case 2: extraAccounts += 1; extraStudents += 1; break;
+          case 3: extraStudents += 1; break;
+          case 4: extraAccounts += 1; break;
+          case 5: extraAccounts += 2; break;
+          case 6: extraAccounts += 1; extraStudents += 2; break;
+          case 7: extraStudents += 1; break;
+        }
+      }
+
+      setFakeStats({
+        totalAccounts: baseAccounts + extraAccounts,
+        activeStudents: baseStudents + extraStudents
+      });
+    };
+
+    calculateGrowthStats();
+  }, []);
 
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/public/settings`)
@@ -327,30 +367,26 @@ export default function Home() {
 
     fetch(`${API_BASE_URL}/api/users/elite-instructors/public`).then(res => res.json()).then(data => setInstructorsList(Array.isArray(data) ? data : [])).catch(() => {});
     
-// ✅ التعديل هنا: نتحقق من وجود المستخدم المسجل بدلاً من التوكن اليدوي
-if (user) {
-    setIsLoggedIn(true);
-    
-    // جلب التقدم الدراسي باستخدام الكوكيز
-    fetch(API_ROUTES.MY_PROGRESS, { 
-      credentials: "include" // ✅ إضافة الكوكيز
-    })
-    .then(res => res.text())
-    .then(text => setUserProgress(text ? JSON.parse(text) : []))
-    .catch(() => {}); 
+    if (user) {
+        setIsLoggedIn(true);
+        
+        fetch(API_ROUTES.MY_PROGRESS, { 
+          credentials: "include" 
+        })
+        .then(res => res.text())
+        .then(text => setUserProgress(text ? JSON.parse(text) : []))
+        .catch(() => {}); 
 
-    // جلب الاشتراكات باستخدام الكوكيز
-    const enrollmentsUrl = (API_ROUTES as any).MY_ENROLLMENTS || `${API_BASE_URL}/api/users/enrollments`;
-    fetch(enrollmentsUrl, { 
-      credentials: "include" // ✅ إضافة الكوكيز
-    })
-    .then(res => res.text())
-    .then(text => setMyEnrollments(text ? JSON.parse(text) : []))
-    .catch(() => {}); 
-}
+        const enrollmentsUrl = (API_ROUTES as any).MY_ENROLLMENTS || `${API_BASE_URL}/api/users/enrollments`;
+        fetch(enrollmentsUrl, { 
+          credentials: "include" 
+        })
+        .then(res => res.text())
+        .then(text => setMyEnrollments(text ? JSON.parse(text) : []))
+        .catch(() => {}); 
+    }
   }, [user]);
 
-  // ✅ تم إصلاح مشكلة التمرير بإضافة Throttle و passive:true 
   useEffect(() => {
     let timeoutId: NodeJS.Timeout | null = null;
     const handleScroll = () => {
@@ -422,7 +458,6 @@ if (user) {
           <FloatingIcon icon={GraduationCap} delay={3} x="left-[5%]" y="bottom-[25%]" color="bg-emerald-600/10" />
           <FloatingIcon icon={Laptop2} delay={1.5} x="left-[20%]" y="bottom-[10%]" color="bg-orange-600/10" />
 
-          {/* تم إخفاء الـ Blur الثقيل على الموبايل */}
           <div className="hidden md:block absolute top-0 left-1/4 w-[600px] h-[600px] bg-indigo-600/15 rounded-full blur-[150px] -z-10 animate-pulse pointer-events-none" />
           <div className="hidden md:block absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[150px] -z-10 animate-pulse delay-1000 pointer-events-none" />
 
@@ -712,24 +747,57 @@ if (user) {
            )}
         </AnimatePresence>
 
-        {/* ======================= 2. قسم الإحصائيات ======================= */}
-        <section className="py-16 md:py-24 bg-[#0a0f1c] relative z-20">
+        {/* 👇 شريط اسم القسم: مجتمع المنصة (مع مسافة علوية لتفادي شريط الأخبار) */}
+        <div className="w-full pt-16 md:pt-20 bg-[#060a14]">
+          <BadgeSeparator icon={Users} text="مجتمع المنصة" color="text-purple-400" glow="shadow-purple-500/20" />
+        </div>
+        
+        {/* قسم الإحصائيات الخاصة (مجتمع المنصة) بمظهر فخم ومفصول */}
+        <section className="py-12 md:py-16 bg-[#060a14] relative z-20">
+          <div className="container mx-auto px-4 md:px-6">
+            <div className="flex flex-col md:flex-row justify-center gap-6 md:gap-10 max-w-4xl mx-auto">
+              
+              <div className="flex-1 bg-gradient-to-br from-blue-900/20 to-[#0f172a] border border-blue-500/20 p-8 rounded-[2rem] flex flex-col items-center text-center shadow-[0_0_30px_rgba(59,130,246,0.1)] relative overflow-hidden group hover:border-blue-500/40 transition-all duration-500">
+                 <div className="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all duration-500"></div>
+                 <Users className="text-blue-400 mb-4 group-hover:scale-110 transition-transform duration-500" size={48} />
+                 <h3 className="text-4xl md:text-6xl font-black text-white mb-2 tracking-tight" dir="ltr">+{fakeStats.totalAccounts}</h3>
+                 <p className="text-blue-200/60 font-bold text-sm md:text-base tracking-wide">إجمالي الحسابات المسجلة</p>
+              </div>
+
+              <div className="flex-1 bg-gradient-to-br from-emerald-900/20 to-[#0f172a] border border-emerald-500/20 p-8 rounded-[2rem] flex flex-col items-center text-center shadow-[0_0_30px_rgba(16,185,129,0.1)] relative overflow-hidden group hover:border-emerald-500/40 transition-all duration-500">
+                 <div className="absolute -top-10 -left-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all duration-500"></div>
+                 <Activity className="text-emerald-400 mb-4 group-hover:scale-110 transition-transform duration-500" size={48} />
+                 <h3 className="text-4xl md:text-6xl font-black text-white mb-2 tracking-tight" dir="ltr">+{fakeStats.activeStudents}</h3>
+                 <p className="text-emerald-200/60 font-bold text-sm md:text-base tracking-wide">يتعلمون معنا الآن</p>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        {/* 👇 شريط اسم القسم: إحصائيات المحتوى التعليمي */}
+        <div className="w-full pt-12 md:pt-16 bg-[#0a0f1c]">
+          <BadgeSeparator icon={Activity} text="إحصائيات المحتوى" color="text-blue-400" glow="shadow-blue-500/20" />
+        </div>
+        
+        {/* ======================= قسم إحصائيات المحتوى (الكورسات والورشات) ======================= */}
+        <section className="py-12 md:py-16 bg-[#0a0f1c] relative z-20">
           <div className="hidden md:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-[500px] bg-indigo-600/5 blur-[150px] -z-10 rounded-full pointer-events-none" />
-          <div className="container mx-auto px-4 md:px-6 relative z-10">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-10">
+          <div className="container mx-auto px-4 md:px-6 relative z-10 max-w-6xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
               {[
                 { label: "مادة أكاديمية", value: platformStats.courses > 0 ? `+${platformStats.courses}` : "0", icon: BookOpen, color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/20" },
                 { label: "ورشة عمل", value: platformStats.workshops > 0 ? `+${platformStats.workshops}` : "0", icon: Layers, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/20" },
                 { label: "معسكر تدريبي", value: platformStats.bootcamps > 0 ? `+${platformStats.bootcamps}` : "0", icon: Zap, color: "text-pink-400", bg: "bg-pink-500/10", border: "border-pink-500/20" },
               ].map((stat: any, i: number) => (
-                <motion.div key={`stat-${i}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0 }}
+                <motion.div key={`stat-content-${i}`} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0 }}
                   className={`flex flex-col items-center justify-center p-6 md:p-8 bg-[#0f172a] md:bg-[#0f172a]/60 md:backdrop-blur-2xl rounded-2xl md:rounded-3xl border ${stat.border} shadow-lg md:shadow-2xl relative overflow-hidden group md:hover:-translate-y-2 transition-all duration-500`}
                 >
                   <div className={`hidden md:block absolute inset-0 ${stat.bg} blur-3xl opacity-0 group-hover:opacity-40 transition-opacity duration-700`} />
                   <div className={`w-14 h-14 md:w-16 md:h-16 rounded-xl md:rounded-2xl ${stat.bg} ${stat.color} flex items-center justify-center mb-4 md:mb-5 relative z-10 border border-white/5 md:group-hover:scale-110 transition-transform duration-500`}>
                     <stat.icon size={24} className="md:w-7 md:h-7" />
                   </div>
-                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-1 md:mb-2 relative z-10 tracking-tight">{stat.value}</h3>
+                  <h3 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-1 md:mb-2 relative z-10 tracking-tight" dir="ltr">{stat.value}</h3>
                   <p className="text-sm md:text-base font-bold text-gray-400 relative z-10">{stat.label}</p>
                 </motion.div>
               ))}
@@ -739,110 +807,115 @@ if (user) {
 
         {/* 🚀 قسم المحتوى الخاص بي */}
         {isLoggedIn && myEnrollments.length > 0 && (
-          <section className="py-16 md:py-24 bg-[#060a14] relative z-20 border-t border-white/5">
-            <AnimatedBeamSeparator colorFrom="from-emerald-500" colorTo="to-teal-500" />
-            <div className="container mx-auto px-4 md:px-6 mt-10 md:mt-16">
-              <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-10 gap-4">
-                <div>
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="bg-emerald-500/10 p-2 md:p-2.5 rounded-lg md:rounded-xl border border-emerald-500/20 text-emerald-400"><PlayCircle size={20} className="md:w-6 md:h-6" /></div>
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tight">متابعة <span className="text-emerald-500">التعلم</span></h2>
-                  </div>
-                  <p className="text-slate-400 text-xs md:text-sm">أكمل مساراتاتك التعليمية من حيث توقفت بكل سهولة.</p>
-                </div>
-              </div>
-
-              {/* 🌟 القسم بعد التعديل (غلفناه بـ relative group لتظهر الأسهم عند تمرير الماوس) */}
-              <div className="relative group w-full px-1 md:px-4">
-                
-                {/* زر السهم لليمين */}
-                <button 
-                  onClick={() => scroll('right')}
-                  aria-label="تمرير لليمين"
-                  className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-[#1e293b]/90 hover:bg-emerald-600 text-white w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl border border-white/10 translate-x-1/3 md:translate-x-1/2"
-                >
-                  <ChevronRight size={24} className="rtl:rotate-180" />
-                </button>
-
-                {/* حاوية الكروت (أضفنا لها الـ ref وأخفينا الشريط) */}
-                <div 
-                  ref={scrollRef}
-                  className="flex gap-4 md:gap-6 overflow-x-auto pb-6 md:pb-8 snap-x scroll-smooth"
-                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                >
-                  <style dangerouslySetInnerHTML={{__html: `
-                    div::-webkit-scrollbar { display: none; }
-                  `}} />
-
-                  {myEnrollments.map((enrollment: any, idx: number) => {
-                    const data = enrollment.course || enrollment.workshop || enrollment.bootcamp || enrollment.freeContent || enrollment;
-                    const videos = data.contents?.filter((c: any) => c.type === 'VIDEO') || [];
-                    const completedCount = videos.filter((v: any) => userProgress.includes(v.id)).length;
-                    const progressPercentage = videos.length > 0 ? Math.min(Math.round((completedCount / videos.length) * 100), 100) : 0;
-                    
-                    let typeLabel = "محتوى", badgeColor = "bg-gray-500/20 text-gray-300 border-gray-500/30", link = "/"; 
-                    if (enrollment.type === 'COURSE') { typeLabel = "مادة أكاديمية"; badgeColor = "bg-blue-500/20 text-blue-300 border-blue-500/30"; link = `/courses/${data.id}/learn`; }
-                    else if (enrollment.type === 'WORKSHOP') { typeLabel = "ورشة عمل"; badgeColor = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"; link = `/workshops/${data.id}/learn`; }
-                    else if (enrollment.type === 'BOOTCAMP') { typeLabel = "معسكر"; badgeColor = "bg-pink-500/20 text-pink-300 border-pink-500/30"; link = `/bootcamps/${data.id}/learn`; }
-                    else if (enrollment.type === 'FREE_CONTENT') { typeLabel = "محتوى مجاني"; badgeColor = "bg-amber-500/20 text-amber-300 border-amber-500/30"; link = `/free-content/${data.id}`; }
-
-                    return (
-                      <motion.div key={`enroll-${enrollment.id || idx}`} whileHover={{ y: -5 }} className="min-w-[280px] md:min-w-[380px] snap-center bg-[#0f172a] border border-white/5 hover:border-emerald-500/30 rounded-2xl md:rounded-[2rem] p-4 md:p-5 flex flex-col transition-all shadow-md md:shadow-xl group/card relative overflow-hidden">
-                        <div className="hidden md:block absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500" />
-                        <div className="flex gap-3 md:gap-4 mb-4 md:mb-6 relative z-10">
-                          <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl md:rounded-2xl overflow-hidden shrink-0 relative border border-white/10 shadow-inner">
-                             <Image unoptimized 
-                               src={getImageUrl(data.imageUrl, 'course') || FALLBACK_IMAGE} 
-                               alt={data.title} 
-                               fill
-                               sizes="96px"
-                               className="object-cover md:group-hover/card:scale-110 transition-transform duration-700" 
-                             />
-                          </div>
-                          <div className="flex-1 flex flex-col justify-center py-1">
-                             <div>
-                                <span className={`text-[9px] md:text-[10px] px-2 md:px-2.5 py-1 rounded-full border font-black ${badgeColor} mb-2 inline-block uppercase tracking-wider`}>{typeLabel}</span>
-                                <h4 className="font-bold text-xs md:text-sm text-white line-clamp-2 leading-snug">{data.title}</h4>
-                             </div>
-                          </div>
-                        </div>
-
-                        <div className="mb-4 md:mb-6 relative z-10">
-                          <div className="flex justify-between text-[10px] md:text-xs font-bold text-gray-400 mb-2 md:transition-opacity md:group-hover/card:opacity-0">
-                             <span>نسبة الإنجاز</span><span className="text-emerald-400">{progressPercentage}%</span>
-                          </div>
-                          <div className="hidden md:flex absolute top-0 left-0 w-full justify-between text-xs font-bold text-emerald-400 mb-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
-                             <span className="flex items-center gap-1"><PlayCircle size={12}/> أكمل من حيث توقفت</span>
-                          </div>
-                          <div className="h-1.5 md:h-2 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 shadow-inner mt-4 md:mt-6">
-                             <motion.div initial={{ width: 0 }} whileInView={{ width: `${progressPercentage}%` }} transition={{ duration: 1, ease: "easeOut" }} className="h-full bg-gradient-to-r from-emerald-600 to-teal-400 relative">
-                                <div className="hidden md:block absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes.png')] opacity-30 animate-[slide_2s_linear_infinite]"></div>
-                             </motion.div>
-                          </div>
-                        </div>
-
-                        <Link href={link} className="mt-auto relative z-10">
-                          <button type="button" aria-label="متابعة التعلم" className="w-full py-2.5 md:py-3 rounded-lg md:rounded-xl bg-[#1e293b] md:bg-white/[0.03] md:group-hover/card:bg-emerald-600 border border-white/5 md:group-hover/card:border-transparent text-gray-300 md:group-hover/card:text-white text-xs md:text-sm font-bold flex items-center justify-center gap-2 transition-all">
-                            <PlayCircle size={16} className="md:w-[18px] md:h-[18px]" /> متابعة التعلم
-                          </button>
-                        </Link>
-                      </motion.div>
-                    );
-                  })}
-                </div>
-
-                {/* زر السهم لليسار */}
-                <button 
-                  onClick={() => scroll('left')}
-                  aria-label="تمرير لليسار"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-[#1e293b]/90 hover:bg-emerald-600 text-white w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl border border-white/10 -translate-x-1/3 md:-translate-x-1/2"
-                >
-                  <ChevronLeft size={24} className="rtl:rotate-180" />
-                </button>
-
-              </div>
+          <>
+            {/* 👇 شريط اسم القسم: متابعة المشاهدات */}
+            <div className="w-full pt-12 md:pt-16 bg-[#060a14]">
+              <BadgeSeparator icon={PlayCircle} text="متابعة المشاهدات" color="text-emerald-400" glow="shadow-emerald-500/20" />
             </div>
-          </section>
+            <section className="py-12 md:py-20 bg-[#060a14] relative z-20">
+              <div className="container mx-auto px-4 md:px-6 mt-6 md:mt-10">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 md:mb-10 gap-4">
+                  <div>
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="bg-emerald-500/10 p-2 md:p-2.5 rounded-lg md:rounded-xl border border-emerald-500/20 text-emerald-400"><PlayCircle size={20} className="md:w-6 md:h-6" /></div>
+                      <h2 className="text-2xl md:text-3xl lg:text-4xl font-black text-white tracking-tight">متابعة <span className="text-emerald-500">التعلم</span></h2>
+                    </div>
+                    <p className="text-slate-400 text-xs md:text-sm">أكمل مساراتاتك التعليمية من حيث توقفت بكل سهولة.</p>
+                  </div>
+                </div>
+
+                {/* 🌟 القسم بعد التعديل (غلفناه بـ relative group لتظهر الأسهم عند تمرير الماوس) */}
+                <div className="relative group w-full px-1 md:px-4">
+                  
+                  {/* زر السهم لليمين */}
+                  <button 
+                    onClick={() => scroll('right')}
+                    aria-label="تمرير لليمين"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-[#1e293b]/90 hover:bg-emerald-600 text-white w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl border border-white/10 translate-x-1/3 md:translate-x-1/2"
+                  >
+                    <ChevronRight size={24} className="rtl:rotate-180" />
+                  </button>
+
+                  {/* حاوية الكروت */}
+                  <div 
+                    ref={scrollRef}
+                    className="flex gap-4 md:gap-6 overflow-x-auto pb-6 md:pb-8 snap-x scroll-smooth"
+                    style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                  >
+                    <style dangerouslySetInnerHTML={{__html: `
+                      div::-webkit-scrollbar { display: none; }
+                    `}} />
+
+                    {myEnrollments.map((enrollment: any, idx: number) => {
+                      const data = enrollment.course || enrollment.workshop || enrollment.bootcamp || enrollment.freeContent || enrollment;
+                      const videos = data.contents?.filter((c: any) => c.type === 'VIDEO') || [];
+                      const completedCount = videos.filter((v: any) => userProgress.includes(v.id)).length;
+                      const progressPercentage = videos.length > 0 ? Math.min(Math.round((completedCount / videos.length) * 100), 100) : 0;
+                      
+                      let typeLabel = "محتوى", badgeColor = "bg-gray-500/20 text-gray-300 border-gray-500/30", link = "/"; 
+                      if (enrollment.type === 'COURSE') { typeLabel = "مادة أكاديمية"; badgeColor = "bg-blue-500/20 text-blue-300 border-blue-500/30"; link = `/courses/${data.id}/learn`; }
+                      else if (enrollment.type === 'WORKSHOP') { typeLabel = "ورشة عمل"; badgeColor = "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"; link = `/workshops/${data.id}/learn`; }
+                      else if (enrollment.type === 'BOOTCAMP') { typeLabel = "معسكر"; badgeColor = "bg-pink-500/20 text-pink-300 border-pink-500/30"; link = `/bootcamps/${data.id}/learn`; }
+                      else if (enrollment.type === 'FREE_CONTENT') { typeLabel = "محتوى مجاني"; badgeColor = "bg-amber-500/20 text-amber-300 border-amber-500/30"; link = `/free-content/${data.id}`; }
+
+                      return (
+                        <motion.div key={`enroll-${enrollment.id || idx}`} whileHover={{ y: -5 }} className="min-w-[280px] md:min-w-[380px] snap-center bg-[#0f172a] border border-white/5 hover:border-emerald-500/30 rounded-2xl md:rounded-[2rem] p-4 md:p-5 flex flex-col transition-all shadow-md md:shadow-xl group/card relative overflow-hidden">
+                          <div className="hidden md:block absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent opacity-0 group-hover/card:opacity-100 transition-opacity duration-500" />
+                          <div className="flex gap-3 md:gap-4 mb-4 md:mb-6 relative z-10">
+                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-xl md:rounded-2xl overflow-hidden shrink-0 relative border border-white/10 shadow-inner">
+                               <Image unoptimized 
+                                 src={getImageUrl(data.imageUrl, 'course') || FALLBACK_IMAGE} 
+                                 alt={data.title} 
+                                 fill
+                                 sizes="96px"
+                                 className="object-cover md:group-hover/card:scale-110 transition-transform duration-700" 
+                               />
+                            </div>
+                            <div className="flex-1 flex flex-col justify-center py-1">
+                               <div>
+                                  <span className={`text-[9px] md:text-[10px] px-2 md:px-2.5 py-1 rounded-full border font-black ${badgeColor} mb-2 inline-block uppercase tracking-wider`}>{typeLabel}</span>
+                                  <h4 className="font-bold text-xs md:text-sm text-white line-clamp-2 leading-snug">{data.title}</h4>
+                               </div>
+                            </div>
+                          </div>
+
+                          <div className="mb-4 md:mb-6 relative z-10">
+                            <div className="flex justify-between text-[10px] md:text-xs font-bold text-gray-400 mb-2 md:transition-opacity md:group-hover/card:opacity-0">
+                               <span>نسبة الإنجاز</span><span className="text-emerald-400">{progressPercentage}%</span>
+                            </div>
+                            <div className="hidden md:flex absolute top-0 left-0 w-full justify-between text-xs font-bold text-emerald-400 mb-2 opacity-0 group-hover/card:opacity-100 transition-opacity">
+                               <span className="flex items-center gap-1"><PlayCircle size={12}/> أكمل من حيث توقفت</span>
+                            </div>
+                            <div className="h-1.5 md:h-2 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 shadow-inner mt-4 md:mt-6">
+                               <motion.div initial={{ width: 0 }} whileInView={{ width: `${progressPercentage}%` }} transition={{ duration: 1, ease: "easeOut" }} className="h-full bg-gradient-to-r from-emerald-600 to-teal-400 relative">
+                                  <div className="hidden md:block absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes.png')] opacity-30 animate-[slide_2s_linear_infinite]"></div>
+                               </motion.div>
+                            </div>
+                          </div>
+
+                          <Link href={link} className="mt-auto relative z-10">
+                            <button type="button" aria-label="متابعة التعلم" className="w-full py-2.5 md:py-3 rounded-lg md:rounded-xl bg-[#1e293b] md:bg-white/[0.03] md:group-hover/card:bg-emerald-600 border border-white/5 md:group-hover/card:border-transparent text-gray-300 md:group-hover/card:text-white text-xs md:text-sm font-bold flex items-center justify-center gap-2 transition-all">
+                              <PlayCircle size={16} className="md:w-[18px] md:h-[18px]" /> متابعة التعلم
+                            </button>
+                          </Link>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+
+                  {/* زر السهم لليسار */}
+                  <button 
+                    onClick={() => scroll('left')}
+                    aria-label="تمرير لليسار"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-[#1e293b]/90 hover:bg-emerald-600 text-white w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 shadow-xl border border-white/10 -translate-x-1/3 md:-translate-x-1/2"
+                  >
+                    <ChevronLeft size={24} className="rtl:rotate-180" />
+                  </button>
+
+                </div>
+              </div>
+            </section>
+          </>
         )}
 
         <AnimatedBeamSeparator />
@@ -942,7 +1015,7 @@ if (user) {
                             </h3>
                             
                             <div className="origin-right transform scale-90 md:scale-95">
-                                <ReadOnlyRating averageRating={data.averageRating || 0} reviewsCount={data.reviewsCount || 0} />
+                                <ReadOnlyRating averageRating={data.averageRating || 0} />
                             </div>
                             
                             <p className="text-slate-400 text-[11px] md:text-xs leading-relaxed mb-3 md:mb-4 line-clamp-2 font-medium opacity-80 flex-grow">
@@ -980,6 +1053,72 @@ if (user) {
               </div>
             </div>
             
+          </div>
+        </section>
+
+        {/* 👇 شريط اسم القسم: تنزيل التطبيقات */}
+        <div className="w-full pt-12 md:pt-16 bg-[#0a0f1c]">
+          <BadgeSeparator icon={DownloadCloud} text="تنزيل التطبيقات" color="text-cyan-400" glow="shadow-cyan-500/20" />
+        </div>
+
+        {/* قسم تطبيقات المنصة الجديد كلياً */}
+        <section id="apps" className="pb-16 pt-10 md:pb-24 md:pt-16 relative bg-[#0a0f1c] overflow-hidden">
+          <div className="container mx-auto px-4 md:px-6 relative z-10">
+             <div className="text-center mb-12 md:mb-20">
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-white mb-4 tracking-tight">تطبيقات <span className="text-blue-500 drop-shadow-sm">المنصة</span></h2>
+              <p className="text-slate-400 text-sm md:text-lg max-w-2xl mx-auto">
+                تعلم في أي وقت ومن أي مكان عبر تطبيقاتنا المخصصة لتجربة مستخدم سلسة وسريعة وحماية عالية.
+              </p>
+            </div>
+            
+            <div className="flex flex-col md:flex-row justify-center items-center gap-8 md:gap-12 max-w-5xl mx-auto">
+               
+               {/* كرت تطبيق سطح المكتب */}
+               <div className="w-full md:w-1/2 bg-[#0f172a] rounded-[2.5rem] p-8 md:p-12 border border-white/10 flex flex-col items-center text-center shadow-2xl relative overflow-hidden group hover:border-blue-500/40 transition-all duration-500">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600/10 blur-[100px] -z-10 rounded-full group-hover:bg-blue-600/20 transition-all duration-500" />
+                  <MonitorPlay size={80} className="text-blue-400 mb-6 drop-shadow-[0_0_15px_rgba(59,130,246,0.5)] group-hover:scale-110 transition-transform duration-500" />
+                  <h3 className="text-2xl font-black text-white mb-4">تطبيق سطح المكتب</h3>
+                  <p className="text-slate-400 text-sm mb-8 leading-relaxed">
+                     استمتع بتجربة تعلم مركزة وبدون مشتتات من خلال تطبيقنا المخصص لأنظمة التشغيل المكتبية مع حماية متقدمة للمحتوى.
+                  </p>
+                  
+                  <div className="w-full md:w-auto shrink-0 flex flex-col items-center mt-auto">
+                      {/* زر التحميل المربوط مع BunnyCDN */}
+                      <a 
+                          href="https://UpscaleFile.b-cdn.net/UpScale_Setup_v1.exe"
+                          download
+                          className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white rounded-2xl font-black flex items-center justify-center gap-3 relative overflow-hidden text-sm shadow-[0_0_20px_rgba(59,130,246,0.4)] transition-all hover:scale-105 active:scale-95"
+                      >
+                          <DownloadCloud size={20} />
+                          تحميل البرنامج الآن
+                          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagonal-stripes.png')] opacity-10"></div>
+                      </a>
+                      <span className="text-[10px] text-gray-400 mt-3 font-bold flex items-center gap-1.5"><Laptop size={12}/> متوافق مع Windows 10/11 - الحجم 422MB</span>
+                  </div>
+               </div>
+
+               {/* كرت تطبيق الموبايل (قريباً) */}
+               <div className="w-full md:w-1/2 bg-[#0f172a] rounded-[2.5rem] p-8 md:p-12 border border-white/5 flex flex-col items-center text-center shadow-xl relative overflow-hidden opacity-90 grayscale-[20%]">
+                  <div className="absolute top-0 left-0 w-64 h-64 bg-purple-600/5 blur-[100px] -z-10 rounded-full" />
+                  <Smartphone size={80} className="text-slate-500 mb-6 drop-shadow-md" />
+                  <h3 className="text-2xl font-black text-slate-300 mb-4">تطبيق الموبايل</h3>
+                  <p className="text-slate-500 text-sm mb-8 leading-relaxed">
+                     التعلم أثناء التنقل سيكون أسهل من أي وقت مضى. تطبيقنا للهواتف الذكية قيد التطوير حالياً وسيتوفر قريباً على متاجر التطبيقات.
+                  </p>
+                  
+                  <div className="w-full md:w-auto shrink-0 flex flex-col items-center mt-auto">
+                      <button 
+                          disabled
+                          className="w-full md:w-auto px-10 py-4 bg-[#1e293b] text-slate-400 rounded-2xl font-black flex items-center justify-center gap-3 relative overflow-hidden text-sm cursor-not-allowed border border-white/5"
+                      >
+                          <Loader2 size={20} className="animate-spin" />
+                          قريباً الموبايل
+                      </button>
+                      <span className="text-[10px] text-gray-500 mt-3 font-bold flex items-center gap-1.5">يدعم أجهزة iOS & Android</span>
+                  </div>
+               </div>
+
+            </div>
           </div>
         </section>
 
@@ -1095,7 +1234,7 @@ if (user) {
                         المحتوى المجاني <br className="hidden md:block"/><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 drop-shadow-md">المميز</span>
                     </h2>
                     <p className="text-slate-400 text-sm md:text-lg mt-3 md:mt-5 max-w-2xl font-medium">
-                       اسئلة خاصة بمواد اكاديمية موزعة ضمن كويزات متفاوتة الصعوبة وغالباً تكون مدعمة بفيدوهات على يوتيوب او على تيلغرام ضمن مجموعات عامة.
+                        اسئلة خاصة بمواد اكاديمية موزعة ضمن كويزات متفاوتة الصعوبة وغالباً تكون مدعمة بفيدوهات على يوتيوب او على تيلغرام ضمن مجموعات عامة.
                     </p>
                   </div>
                   <Link href="/free-content" className="w-full md:w-auto mt-2 md:mt-0">

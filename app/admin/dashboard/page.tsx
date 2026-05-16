@@ -9,7 +9,7 @@ import {
   Activity, Wifi, WifiOff, AlertTriangle, FolderOpen, ArrowRight, Trash2,
   RefreshCw, UserX, Ban, Unlock, MinusCircle, CalendarDays, Search,
   Eye, PlayCircle, Info, Save, UploadCloud, Lock, Globe, Monitor, Smartphone,
-  PlusCircle, Network, Database
+  PlusCircle, Network, Database, SmilePlus, ImagePlus
 } from "lucide-react"; 
 
 export default function AdminDashboard() {
@@ -104,6 +104,12 @@ export default function AdminDashboard() {
     prerequisites: "",
     credits: ""
   });
+
+  // --- حالات الستيكرات الجديدة ---
+  const [showStickersModal, setShowStickersModal] = useState(false);
+  const [platformStickers, setPlatformStickers] = useState<any[]>([]);
+  const [isLoadingStickers, setIsLoadingStickers] = useState(false);
+  const [isUploadingSticker, setIsUploadingSticker] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -715,6 +721,62 @@ const handleDeleteSVUCourse = async (id: string) => {
     }
   };
 
+  // --- دوال الستيكرات الجديدة ---
+  const fetchStickers = async () => {
+    setIsLoadingStickers(true);
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/stickers/all`, { credentials: "include" });
+      if (res.ok) setPlatformStickers(await res.json());
+    } catch (err) { 
+      toast.error("خطأ في الاتصال بالخادم لجلب الملصقات."); 
+    } finally { 
+      setIsLoadingStickers(false); 
+    }
+  };
+
+  const handleUploadSticker = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingSticker(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/stickers/upload`, {
+        method: 'POST', 
+        credentials: "include", 
+        body: formData
+      });
+      if (res.ok) {
+        toast.success("تم رفع الملصق للمنصة بنجاح!");
+        fetchStickers(); 
+      } else { 
+        toast.error("فشل رفع الملصق. تأكد من الحجم والصيغة."); 
+      }
+    } catch (err) { 
+      toast.error("خطأ أثناء الرفع."); 
+    } finally { 
+      setIsUploadingSticker(false); 
+    }
+  };
+
+  const handleDeleteSticker = async (id: string) => {
+    if (!confirm("هل أنت متأكد من حذف هذا الملصق نهائياً؟ سيتم سحبه من جميع الطلاب وحذفه من السيرفر.")) return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/stickers/admin/${id}`, {
+        method: 'DELETE', 
+        credentials: "include"
+      });
+      if (res.ok) {
+        toast.success("تم حذف الملصق بنجاح!");
+        setPlatformStickers(prev => prev.filter(s => s.id !== id));
+      } else toast.error("فشل حذف الملصق.");
+    } catch (err) { 
+      toast.error("خطأ أثناء الحذف."); 
+    }
+  };
+
   return (
     <div className="min-h-screen text-white pt-12 px-8 pb-12" dir="rtl">
       <div className="max-w-7xl mx-auto">
@@ -823,6 +885,18 @@ const handleDeleteSVUCourse = async (id: string) => {
             </div>
             <h3 className="text-lg font-bold mb-2 relative z-10 text-blue-100 group-hover:text-white">إعدادات (من نحن)</h3>
             <p className="text-xs text-blue-200/70 group-hover:text-blue-100 relative z-10">تعديل معلومات المنصة، المالك، وفريق العمل.</p>
+          </button>
+
+          {/* الكرت الجديد الخاص بالستيكرات */}
+          <button 
+            onClick={() => { setShowStickersModal(true); fetchStickers(); }} 
+            className="text-right group p-6 bg-gradient-to-br from-rose-600/20 to-pink-900/20 border border-rose-500/30 rounded-3xl hover:bg-rose-600 hover:border-rose-500 transition-all relative overflow-hidden shadow-[0_0_20px_rgba(244,63,94,0.15)] xl:col-span-1"
+          >
+            <div className="w-12 h-12 rounded-full bg-rose-500/20 flex items-center justify-center mb-4 group-hover:bg-white/20 relative z-10">
+              <SmilePlus size={24} className="text-rose-400 group-hover:text-white" />
+            </div>
+            <h3 className="text-lg font-bold mb-2 relative z-10 text-rose-100 group-hover:text-white">مكتبة الملصقات (Stickers)</h3>
+            <p className="text-xs text-rose-200/70 group-hover:text-rose-100 relative z-10">ارفع الستيكرات وقم بإدارتها لتظهر في محادثات الطلاب.</p>
           </button>
 
         </div>
@@ -1160,7 +1234,6 @@ const handleDeleteSVUCourse = async (id: string) => {
           </div>
         </div>
       )}
-
 
       {showAboutModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1792,6 +1865,68 @@ const handleDeleteSVUCourse = async (id: string) => {
                     </button>
                 </form>
             </div>
+        </div>
+      )}
+
+      {/* --- نافذة إدارة الستيكرات --- */}
+      {showStickersModal && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" onClick={() => setShowStickersModal(false)}></div>
+          <div className="relative bg-[#0f172a] border border-rose-500/30 rounded-[2.5rem] w-full max-w-5xl max-h-[90vh] shadow-[0_0_40px_rgba(244,63,94,0.15)] z-10 flex flex-col animate-in zoom-in-95" dir="rtl">
+            
+            <div className="p-6 border-b border-white/10 flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-white/5 rounded-t-[2.5rem]">
+              <div className="flex items-center gap-4">
+                <div className="bg-rose-500/20 p-3 rounded-xl border border-rose-500/30">
+                  <SmilePlus size={28} className="text-rose-400" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-white">إدارة ملصقات المنصة</h2>
+                  <p className="text-sm text-gray-400">جميع الملصقات المضافة ستظهر للطلاب في لوحة الشات.</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 text-white px-4 py-2.5 rounded-xl cursor-pointer transition-colors font-bold text-sm shadow-lg">
+                  {isUploadingSticker ? <Loader2 size={18} className="animate-spin" /> : <ImagePlus size={18} />}
+                  {isUploadingSticker ? "جاري الرفع..." : "رفع ملصق جديد"}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleUploadSticker} disabled={isUploadingSticker} />
+                </label>
+                <button onClick={() => setShowStickersModal(false)} className="text-gray-400 hover:text-white bg-white/5 p-2.5 rounded-xl transition-colors"><X size={20} /></button>
+              </div>
+            </div>
+
+            <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-[#060a14] rounded-b-[2.5rem]">
+              {isLoadingStickers ? (
+                <div className="flex flex-col items-center justify-center h-64">
+                  <Loader2 className="animate-spin text-rose-500 mb-4" size={40} />
+                  <p className="text-gray-400">جاري جلب الملصقات...</p>
+                </div>
+              ) : platformStickers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+                  <SmilePlus size={64} className="mb-4 opacity-30" />
+                  <p className="text-xl font-bold">لا يوجد ملصقات حالياً</p>
+                  <p className="text-sm mt-2">اضغط على زر (رفع ملصق جديد) لإضافة ستيكرات لمنصتك.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {platformStickers.map(sticker => (
+                    <div key={sticker.id} className="relative group bg-white/5 rounded-2xl border border-white/10 hover:border-rose-500/50 transition-all aspect-square flex items-center justify-center p-2">
+                      <img src={sticker.url} alt="Sticker" className="max-w-full max-h-full object-contain drop-shadow-lg" />
+                      
+                      {/* زر الحذف يظهر عند التمرير بالماوس */}
+                      <button 
+                        onClick={() => handleDeleteSticker(sticker.id)}
+                        className="absolute top-2 left-2 bg-red-500/90 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600 shadow-lg"
+                        title="حذف الستيكر"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       )}
 

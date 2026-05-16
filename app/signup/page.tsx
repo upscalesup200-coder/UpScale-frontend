@@ -129,6 +129,7 @@ export default function SignupPage() {
 
       if (!res.ok) {
         if (res.status === 409) throw new Error("البريد الإلكتروني أو اسم المستخدم موجود مسبقاً");
+        console.error("Server validation error:", data.message);
         throw new Error(data.message || "حدث خطأ أثناء إنشاء الحساب");
       }
 
@@ -407,7 +408,7 @@ export default function SignupPage() {
 
                 <button
                   type="submit"
-                  disabled={loading || !isFormValid() || cooldown > 0}
+                  /*disabled={loading || !isFormValid() || cooldown > 0}*/
                   className="w-full py-4 md:py-4 mt-6 md:mt-8 rounded-xl md:rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-sm md:text-base shadow-lg shadow-purple-500/25 md:hover:shadow-[0_0_20px_rgba(147,51,234,0.4)] transition-all active:scale-[0.98] flex items-center justify-center gap-2 disabled:opacity-50 disabled:active:scale-100 disabled:cursor-not-allowed group overflow-hidden relative"
                 >
                   <div className="hidden md:block absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
